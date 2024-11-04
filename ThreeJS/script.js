@@ -1,14 +1,10 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { VTKLoader } from 'three/addons/loaders/VTKLoader.js';
-import Stats from 'three/addons/libs/stats.module.js';
 import ThreeMeshUI from "three-mesh-ui";
-
-console.log(Stats());
 
 //TODO: if I implement server side stuff, could use vtk.js to read file, then serve back vtk model and the vertex values to be animated on the client side
 
-// const height = 
 const importMeshSize = 10;
 const rotInputScale = 10;
 const zoomInputScale = 20;
@@ -154,6 +150,7 @@ function init() {
             leftController.isGripped = false;
             leftController.prevPosition.set(0, 0, 0);
         })
+        renderer.setAnimationLoop(animate);
     });
 
     renderer.xr.addEventListener('sessionend', () => {
@@ -193,7 +190,6 @@ function init() {
 
     } );
 
-    renderer.setAnimationLoop(animate);
     document.body.appendChild( renderer.domElement );
 }
 
