@@ -97,8 +97,6 @@ function init() {
             rightController.gamepad = e.data.gamepad
         });
 
-        console.log(rightController);
-
         rightController.addEventListener("selectstart", (event) => {
             rightController.isSelected = true;
             rightController.prevPosition = rightController.position.clone();
@@ -128,8 +126,6 @@ function init() {
         leftController.addEventListener( 'connected', (e) => {
             leftController.gamepad = e.data.gamepad
         });
-
-        console.log(leftController);
         
         leftController.addEventListener("selectstart", (event) => {
             leftController.isSelected = true;
@@ -205,11 +201,13 @@ function animate() {
             interactionObj.rotateOnWorldAxis(new THREE.Vector3(-1, 0, 0), -deltaPos.y * rotInputScale);
         }
 
-        // axis 2 is x
-        let playback_val = rightController.gamepad.axes[2] * playbackInputScale;
-        playbackSpeed += playback_val / 60;
-        playbackSpeed = Math.min(maxPlaybackSpeed, Math.max(playbackSpeed, minPlaybackSpeed));
-        // divide by 60 to attempt to adjust to framerate
+        if (rightController.gamepad) {
+            // axis 2 is x
+            let playback_val = rightController.gamepad.axes[2] * playbackInputScale;
+            playbackSpeed += playback_val / 60;
+            playbackSpeed = Math.min(maxPlaybackSpeed, Math.max(playbackSpeed, minPlaybackSpeed));
+            // divide by 60 to attempt to adjust to framerate
+        }
 
     } else if (leftController) {
         if (leftController.isSelected) {
