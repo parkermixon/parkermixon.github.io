@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { VTKLoader } from 'three/addons/loaders/VTKLoader.js';
+import Stats from 'three/addons/libs/stats.module.js';
+import ThreeMeshUI from "three-mesh-ui";
+
+console.log(Stats());
 
 //TODO: if I implement server side stuff, could use vtk.js to read file, then serve back vtk model and the vertex values to be animated on the client side
 
@@ -8,15 +12,68 @@ import { VTKLoader } from 'three/addons/loaders/VTKLoader.js';
 const importMeshSize = 10;
 const rotInputScale = 10;
 const zoomInputScale = 20;
+const playbackInputScale = 0.1; // as per frame
+
+const minPlaybackSpeed = 0.1;
+const maxPlaybackSpeed = 2;
+
+var playbackSpeed = 1;
 
 var renderer, camera, scene, interactionObj;
 var leftController = null;
 var rightController = null;
+var container;
+var timeText;
+var playbackSpeedText;
 
 function init() {
     camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.01, 100 );
     scene = new THREE.Scene();
     scene.add(camera);
+
+    container = new ThreeMeshUI.Block({
+        width: 1.2,
+        height: 0.7,
+        padding: 0.2,
+        fontFamily: './assets/Roboto-msdf.json',
+        fontTexture: './assets/Roboto-msdf.png',
+    });
+
+    const timePanel = new ThreeMeshUI.Block({
+        width: 0.6,
+        height: 0.2,
+        fontFamily: './assets/Roboto-msdf.json',
+        fontTexture: './assets/Roboto-msdf.png',
+        backgroundOpacity: 0
+    })
+    
+    timeText = new ThreeMeshUI.Text({
+        content: "Time: "
+    });
+
+    timePanel.add(timeText);
+    container.add(timePanel);
+
+    const playbackSpeedPanel = new ThreeMeshUI.Block({
+        width: 0.6,
+        height: 0.2,
+        fontFamily: './assets/Roboto-msdf.json',
+        fontTexture: './assets/Roboto-msdf.png',
+        backgroundOpacity: 0
+    })
+
+    playbackSpeedText = new ThreeMeshUI.Text({
+        content: "Speed: 1"
+    });
+
+    playbackSpeedPanel.add(playbackSpeedText);
+    container.add(playbackSpeedPanel);
+
+    container.position.copy(camera.position)
+    container.position.setZ(container.position.z - 2);
+    container.position.setY(0);
+
+    scene.add(container);
 
     // Renderer
     renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -26,6 +83,8 @@ function init() {
     // Enable vr & apply vr settings
     document.body.appendChild( VRButton.createButton(renderer));
     renderer.xr.enabled = true;
+
+    
 
     // TODO: turn controller set up into functions
     renderer.xr.addEventListener('sessionstart', ()=> {
@@ -37,6 +96,12 @@ function init() {
         rightController.name = 'right';
         rightController.isSelected = false;
         rightController.isGripped = false;
+
+        rightController.addEventListener( 'connected', (e) => {
+            rightController.gamepad = e.data.gamepad
+        });
+
+        console.log(rightController);
 
         rightController.addEventListener("selectstart", (event) => {
             rightController.isSelected = true;
@@ -63,6 +128,11 @@ function init() {
         leftController.name = 'left';
         leftController.isSelected = false;
         leftController.isGripped = false;
+
+        leftController.addEventListener( 'connected', (e) => {
+            leftController.gamepad = e.data.gamepad
+        });
+
         console.log(leftController);
         
         leftController.addEventListener("selectstart", (event) => {
@@ -138,6 +208,13 @@ function animate() {
             // rotate x on world axis
             interactionObj.rotateOnWorldAxis(new THREE.Vector3(-1, 0, 0), -deltaPos.y * rotInputScale);
         }
+
+        // axis 2 is x
+        let playback_val = rightController.gamepad.axes[2] * playbackInputScale;
+        playbackSpeed += playback_val / 60;
+        playbackSpeed = Math.min(maxPlaybackSpeed, Math.max(playbackSpeed, minPlaybackSpeed));
+        // divide by 60 to attempt to adjust to framerate
+
     } else if (leftController) {
         if (leftController.isSelected) {
             let deltaPos = leftController.prevPosition.clone().sub(leftController.position);
@@ -166,7 +243,7 @@ function animate() {
         leftController.prevPosition = leftController.position.clone();
     }
 
-    
+    ThreeMeshUI.update();
     renderer.render(scene, camera);
 }
 
@@ -178,12 +255,15 @@ async function anim_vertex_colors(geo, vertex_colors, time_values) {
 
         // Calculate frame time
         let deltaTime;
-        if (time_idx < time_values.length-2) {
+        if (time_idx < time_values.length-1) {
             deltaTime = (time_values[time_idx+1] - time_values[time_idx]) * 1000;
         }
         else {
             deltaTime = 1000;
         }
+
+        timeText.set({content: "Time: " + time_values[time_idx].toFixed(2).toString() + "s"});
+        playbackSpeedText.set({content: "Speed: " + playbackSpeed.toFixed(2) + "x"});
         
         time_idx += 1;
         if (time_idx > time_values.length-1) {
@@ -191,7 +271,7 @@ async function anim_vertex_colors(geo, vertex_colors, time_values) {
             console.log('looping');
         }
 
-        await new Promise(r => setTimeout(r, deltaTime));
+        await new Promise(r => setTimeout(r, deltaTime/playbackSpeed));
     }
 }
 
