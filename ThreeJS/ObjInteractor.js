@@ -253,15 +253,15 @@ export const ObjectInteractor = class {
             width: 1.2,
             height: 0.7,
             padding: 0.2,
-            fontFamily: '../assets/Roboto-msdf.json',
-            fontTexture: '../assets/Roboto-msdf.png',
+            fontFamily: './assets/Roboto-msdf.json',
+            fontTexture: './assets/Roboto-msdf.png',
         });
     
         let timePanel = new ThreeMeshUI.Block({
             width: 0.6,
             height: 0.2,
-            fontFamily: '../assets/Roboto-msdf.json',
-            fontTexture: '../assets/Roboto-msdf.png',
+            fontFamily: './assets/Roboto-msdf.json',
+            fontTexture: './assets/Roboto-msdf.png',
             backgroundOpacity: 0
         })
         
@@ -275,8 +275,8 @@ export const ObjectInteractor = class {
         let playbackSpeedPanel = new ThreeMeshUI.Block({
             width: 0.6,
             height: 0.2,
-            fontFamily: '../assets/Roboto-msdf.json',
-            fontTexture: '../assets/Roboto-msdf.png',
+            fontFamily: './assets/Roboto-msdf.json',
+            fontTexture: './assets/Roboto-msdf.png',
             backgroundOpacity: 0
         })
     
