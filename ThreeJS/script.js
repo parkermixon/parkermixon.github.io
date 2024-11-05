@@ -8,7 +8,7 @@ const noXrTemplate = document.getElementById("noXrControlGui");
 var objInteractor;
 
 const loader = new VTKLoader();
-loader.load( '../data/vtk_export.vtk', function ( geometry ) {
+loader.load( './data/vtk_export.vtk', function ( geometry ) {
 
     geometry.center();
     geometry.computeVertexNormals();
@@ -32,7 +32,7 @@ loader.load( '../data/vtk_export.vtk', function ( geometry ) {
         objInteractor = new ObjectInteractor(isSupported, interactionObj, initDist, noXrTemplate);
     });
     
-    fetch('../data/uter_out.json').then((response) => response.json()).then((json_data) => {
+    fetch('./data/uter_out.json').then((response) => response.json()).then((json_data) => {
         let vertex_vals = json_data.pointValues;
         let vertex_colors = json_data.colors;
         let time = json_data.time;
